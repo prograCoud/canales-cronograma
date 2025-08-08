@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario LINAFA - 3º División Academy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .tab-btn {
+            transition: all 0.3s ease;
+        }
+        .tab-btn.active {
+            background-color: #1e40af; /* Azul oscuro */
+            color: white;
+            font-weight: 700;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .jornada-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .jornada-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        .jornada-header {
+            background: linear-gradient(to right, #1e3a8a, #2563eb); /* Gradiente azul */
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-top-left-radius: 0.75rem;
+            border-top-right-radius: 0.75rem;
+        }
+        .match-row {
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .match-row:last-child {
+            border-bottom: none;
+        }
+        .team-name {
+            font-weight: 600;
+        }
+        .vs-circle {
+            background-color: #e5e7eb;
+            color: #4b5563;
+            font-weight: 700;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-6 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <!-- Encabezado -->
+        <header class="text-center mb-8">
+            <div class="flex justify-center items-center space-x-4 mb-4">
+                 <div class="text-2xl font-bold bg-blue-800 text-white p-3 rounded-lg">LINAFA</div>
+                 <div class="text-2xl font-bold bg-red-700 text-white p-3 rounded-lg flex items-center justify-center">CR</div>
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-800">3º DIVISIÓN ACADEMY</h1>
+            <p class="text-gray-500 mt-2">Calendario de Partidos</p>
+        </header>
+
+        <!-- Controles de Pestañas -->
+        <div class="flex justify-center space-x-2 sm:space-x-4 mb-8">
+            <button id="btn-apertura" class="tab-btn active px-4 py-2 sm:px-6 sm:py-3 rounded-full text-sm sm:text-base font-semibold bg-white text-gray-700 shadow-sm" onclick="showTournament('apertura')">
+                Torneo Apertura
+            </button>
+            <button id="btn-clausura" class="tab-btn px-4 py-2 sm:px-6 sm:py-3 rounded-full text-sm sm:text-base font-semibold bg-white text-gray-700 shadow-sm" onclick="showTournament('clausura')">
+                Torneo Clausura
+            </button>
+        </div>
+
+        <!-- Contenedor de Torneos -->
+        <main id="tournaments-container">
+            <!-- Torneo Apertura (se genera con JS) -->
+            <div id="apertura"></div>
+            <!-- Torneo Clausura (se genera con JS) -->
+            <div id="clausura" class="hidden"></div>
+        </main>
+
+    </div>
+
+    <script>
+        // --- BASE DE DATOS DE PARTIDOS ---
+        const tournaments = {
+            apertura: [
+                { jornada: 1, fecha: "10 AGOSTO", partidos: [
+                    { casa: "FÉNIX ACADEMY", visita: "A. D. ASTURIAS" },
+                    { casa: "ROOTS, F. C.", visita: "CARMEN F. C." },
+                    { casa: "LA PEREGRINA, F. C.", visita: "CANALES F. C." },
+                    { casa: "MONTES DE OCA", visita: "A. D. B. CULTURAL LA UNIÓN" }
+                ]},
+                { jornada: 2, fecha: "17 AGOSTO", partidos: [
+                    { casa: "MONTES DE OCA", visita: "FÉNIX ACADEMY" },
+                    { casa: "A. D. B. CULTURAL LA UNIÓN", visita: "LA PEREGRINA, F. C." },
+                    { casa: "CARMEN F. C.", visita: "ROOTS, F. C." },
+                    { casa: "A. D. ASTURIAS", visita: "CANALES F. C." }
+                ]},
+                { jornada: 3, fecha: "24 AGOSTO", partidos: [
+                    { casa: "FÉNIX ACADEMY", visita: "CARMEN F. C." },
+                    { casa: "A. D. ASTURIAS", visita: "CANALES F. C." },
+                    { casa: "LA PEREGRINA, F. C.", visita: "A. D. B. CULTURAL LA UNIÓN" },
+                    { casa: "ROOTS, F. C.", visita: "MONTES DE OCA" }
+                ]},
+                { jornada: 4, fecha: "31 AGOSTO", partidos: [
+                    { casa: "LA PEREGRINA, F. C.", visita: "FÉNIX ACADEMY" },
+                    { casa: "MONTES DE OCA", visita: "ROOTS, F. C." },
+                    { casa: "A. D. B. CULTURAL LA UNIÓN", visita: "A. D. ASTURIAS" },
+                    { casa: "CANALES F. C.", visita: "CARMEN F. C." }
+                ]},
+                 { jornada: 5, fecha: "07 SETIEMBRE", partidos: [
+                    { casa: "FÉNIX ACADEMY", visita: "CANALES F. C." },
+                    { casa: "CARMEN F. C.", visita: "A. D. B. CULTURAL LA UNIÓN" },
+                    { casa: "A. D. ASTURIAS", visita: "MONTES DE OCA" },
+                    { casa: "ROOTS, F. C.", visita: "LA PEREGRINA, F. C." }
+                ]},
+                { jornada: 6, fecha: "14 SETIEMBRE", partidos: [
+                    { casa: "ROOTS, F. C.", visita: "FÉNIX ACADEMY" },
+                    { casa: "LA PEREGRINA, F. C.", visita: "A. D. ASTURIAS" },
+                    { casa: "MONTES DE OCA", visita: "CARMEN F. C." },
+                    { casa: "A. D. B. CULTURAL LA UNIÓN", visita: "CANALES F. C." }
+                ]},
+                { jornada: 7, fecha: "21 SETIEMBRE", partidos: [
+                    { casa: "FÉNIX ACADEMY", visita: "A. D. B. CULTURAL LA UNIÓN" },
+                    { casa: "MONTES DE OCA", visita: "CANALES F. C." },
+                    { casa: "CARMEN F. C.", visita: "LA PEREGRINA, F. C." },
+                    { casa: "A. D. ASTURIAS", visita: "ROOTS, F. C." }
+                ]},
+                { jornada: 8, fecha: "28 SETIEMBRE", partidos: [
+                    { casa: "A. D. ASTURIAS", visita: "FÉNIX ACADEMY" },
+                    { casa: "CANALES F. C.", visita: "ROOTS, F. C." },
+                    { casa: "A. D. B. CULTURAL LA UNIÓN", visita: "MONTES DE OCA" },
+                    { casa: "LA PEREGRINA, F. C.", visita: "CARMEN F. C." }
+                ]},
+                { jornada: 9, fecha: "05 OCTUBRE", partidos: [
+                    { casa: "FÉNIX ACADEMY", visita: "MONTES DE OCA" },
+                    { casa: "LA PEREGRINA, F. C.", visita: "A. D. B. CULTURAL LA UNIÓN" },
+                    { casa: "ROOTS, F. C.", visita: "CARMEN F. C." },
+                    { casa: "CANALES F. C.", visita: "A. D. ASTURIAS" }
+                ]},
+                { jornada: 10, fecha: "12 OCTUBRE", partidos: [
+                    { casa: "CARMEN F. C.", visita: "FÉNIX ACADEMY" },
+                    { casa: "CANALES F. C.", visita: "A. D. ASTURIAS" },
+                    { casa: "A. D. B. CULTURAL LA UNIÓN", visita: "ROOTS, F. C." },
+                    { casa: "MONTES DE OCA", visita: "LA PEREGRINA, F. C." }
+                ]},
+                { jornada: 11, fecha: "19 OCTUBRE", partidos: [
+                    { casa: "FÉNIX ACADEMY", visita: "LA PEREGRINA, F. C." },
+                    { casa: "ROOTS, F. C.", visita: "MONTES DE OCA" },
+                    { casa: "A. D. ASTURIAS", visita: "A. D. B. CULTURAL LA UNIÓN" },
+                    { casa: "CARMEN F. C.", visita: "CANALES F. C." }
+                ]},
+                { jornada: 12, fecha: "26 OCTUBRE", partidos: [
+                    { casa: "CANALES F. C.", visita: "FÉNIX ACADEMY" },
+                    { casa: "A. D. B. CULTURAL LA UNIÓN", visita: "CARMEN F. C." },
+                    { casa: "MONTES DE OCA", visita: "A. D. ASTURIAS" },
+                    { casa: "LA PEREGRINA, F. C.", visita: "ROOTS, F. C." }
+                ]},
+                { jornada: 13, fecha: "02 NOVIEMBRE", partidos: [
+                    { casa: "FÉNIX ACADEMY", visita: "ROOTS, F. C." },
+                    { casa: "A. D. ASTURIAS", visita: "LA PEREGRINA, F. C." },
+                    { casa: "CARMEN F. C.", visita: "MONTES DE OCA" },
+                    { casa: "CANALES F. C.", visita: "A. D. B. CULTURAL LA UNIÓN" }
+                ]},
+                { jornada: 14, fecha: "09 NOVIEMBRE", partidos: [
+                    { casa: "A. D. B. CULTURAL LA UNIÓN", visita: "FÉNIX ACADEMY" },
+                    { casa: "MONTES DE OCA", visita: "CANALES F. C." },
+                    { casa: "LA PEREGRINA, F. C.", visita: "CARMEN F. C." },
+                    { casa: "ROOTS, F. C.", visita: "A. D. ASTURIAS" }
+                ]},
+                { jornada: "SEMIFINAL", fecha: "16 NOVIEMBRE", partidos: [
+                    { casa: "2º LUGAR", visita: "3º LUGAR" },
+                    { casa: "1º LUGAR", visita: "4º LUGAR" }
+                ]},
+                { jornada: "SEMIFINAL", fecha: "19/20 NOVIEMBRE", partidos: [
+                    { casa: "3º LUGAR", visita: "2º LUGAR" },
+                    { casa: "4º LUGAR", visita: "1º LUGAR" }
+                ]},
+                { jornada: "FINAL TORNEO APERTURA", fecha: "1º PARTIDO: DOMINGO 23 NOVIEMBRE", partidos: [
+                    { casa: "GANADOR GRUPO A", visita: "GANADOR GRUPO B" }
+                ]},
+                { jornada: "FINAL TORNEO APERTURA", fecha: "2º PARTIDO: DOMINGO 30 NOVIEMBRE", partidos: [
+                    { casa: "GANADOR GRUPO B", visita: "GANADOR GRUPO A" }
+                ]}
+            ],
+            clausura: [
+                { jornada: 1, fecha: "07 DICIEMBRE", partidos: [
+                    { casa: "A.D.B. CULTURAL LA UNIÓN", visita: "ROOTS, F. C." },
+                    { casa: "CARMEN F. C.", visita: "A. D. ASTURIAS" },
+                    { casa: "FÉNIX ACADEMY", visita: "MONTES DE OCA" },
+                    { casa: "LA PEREGRINA, F. C.", visita: "CANALES F. C." }
+                ]},
+                { jornada: 2, fecha: "14 DICIEMBRE", partidos: [
+                    { casa: "LA PEREGRINA, F. C.", visita: "ADF. CULTURAL LA UNIÓN" },
+                    { casa: "FÉNIX ACADEMY", visita: "A. D. ASTURIAS" },
+                    { casa: "ROOTS, F. C.", visita: "MONTES DE OCA" },
+                    { casa: "CARMEN F. C.", visita: "CANALES F. C." }
+                ]},
+                { jornada: 3, fecha: "14 DICIEMBRE", partidos: [
+                    { casa: "ADF. CULTURAL LA UNIÓN", visita: "A. D. ASTURIAS" },
+                    { casa: "MONTES DE OCA", visita: "CANALES F. C." },
+                    { casa: "LA PEREGRINA, F. C.", visita: "CARMEN F. C." },
+                    { casa: "FÉNIX ACADEMY", visita: "ROOTS, F. C." }
+                ]},
+                { jornada: 4, fecha: "21 DICIEMBRE", partidos: [
+                    { casa: "FÉNIX ACADEMY", visita: "ADF. CULTURAL LA UNIÓN" },
+                    { casa: "LA PEREGRINA, F. C.", visita: "ROOTS, F. C." },
+                    { casa: "CANALES F. C.", visita: "A. D. ASTURIAS" },
+                    { casa: "MONTES DE OCA", visita: "CARMEN F. C." }
+                ]},
+                { jornada: 5, fecha: "11 ENERO", partidos: [
+                    { casa: "ADF. CULTURAL LA UNIÓN", visita: "MONTES DE OCA" },
+                    { casa: "A. D. ASTURIAS", visita: "LA PEREGRINA, F. C." },
+                    { casa: "ROOTS, F. C.", visita: "CARMEN F. C." },
+                    { casa: "CANALES F. C.", visita: "FÉNIX ACADEMY" }
+                ]},
+                { jornada: 6, fecha: "18/19 ENERO", partidos: [
+                    { casa: "CANALES F. C.", visita: "ADF. CULTURAL LA UNIÓN" },
+                    { casa: "FÉNIX ACADEMY", visita: "LA PEREGRINA, F. C." },
+                    { casa: "CARMEN F. C.", visita: "MONTES DE OCA" },
+                    { casa: "A. D. ASTURIAS", visita: "ROOTS, F. C." }
+                ]},
+                { jornada: 7, fecha: "28 ENERO", partidos: [
+                    { casa: "ADF. CULTURAL LA UNIÓN", visita: "LA PEREGRINA, F. C." },
+                    { casa: "MONTES DE OCA", visita: "ROOTS, F. C." },
+                    { casa: "A. D. ASTURIAS", visita: "FÉNIX ACADEMY" },
+                    { casa: "CANALES F. C.", visita: "CARMEN F. C." }
+                ]},
+                { jornada: 8, fecha: "29 ENERO", partidos: [
+                    { casa: "ROOTS, F. C.", visita: "ADF. CULTURAL LA UNIÓN" },
+                    { casa: "CARMEN F. C.", visita: "FÉNIX ACADEMY" },
+                    { casa: "A. D. ASTURIAS", visita: "MONTES DE OCA" },
+                    { casa: "LA PEREGRINA, F. C.", visita: "CANALES F. C." }
+                ]},
+                { jornada: 9, fecha: "28/29 ENERO", partidos: [
+                    { casa: "ADF. CULTURAL LA UNIÓN", visita: "CARMEN F. C." },
+                    { casa: "FÉNIX ACADEMY", visita: "CANALES F. C." },
+                    { casa: "LA PEREGRINA, F. C.", visita: "MONTES DE OCA" },
+                    { casa: "ROOTS, F. C.", visita: "A. D. ASTURIAS" }
+                ]},
+                { jornada: 10, fecha: "04/05 FEBRERO", partidos: [
+                    { casa: "A. D. ASTURIAS", visita: "ADF. CULTURAL LA UNIÓN" },
+                    { casa: "CARMEN F. C.", visita: "LA PEREGRINA, F. C." },
+                    { casa: "ROOTS, F. C.", visita: "CANALES F. C." },
+                    { casa: "MONTES DE OCA", visita: "FÉNIX ACADEMY" }
+                ]},
+                { jornada: 11, fecha: "08 FEBRERO", partidos: [
+                    { casa: "ADF. CULTURAL LA UNIÓN", visita: "FÉNIX ACADEMY" },
+                    { casa: "CANALES F. C.", visita: "LA PEREGRINA, F. C." },
+                    { casa: "MONTES DE OCA", visita: "A. D. ASTURIAS" },
+                    { casa: "CARMEN F. C.", visita: "ROOTS, F. C." }
+                ]},
+                { jornada: 12, fecha: "15 FEBRERO", partidos: [
+                    { casa: "MONTES DE OCA", visita: "ADF. CULTURAL LA UNIÓN" },
+                    { casa: "LA PEREGRINA, F. C.", visita: "A. D. ASTURIAS" },
+                    { casa: "FÉNIX ACADEMY", visita: "CARMEN F. C." },
+                    { casa: "ROOTS, F. C.", visita: "CANALES F. C." }
+                ]},
+                { jornada: 13, fecha: "18/19 FEBRERO", partidos: [
+                    { casa: "ADF. CULTURAL LA UNIÓN", visita: "CARMEN F. C." },
+                    { casa: "CANALES F. C.", visita: "FÉNIX ACADEMY" },
+                    { casa: "A. D. ASTURIAS", visita: "LA PEREGRINA, F. C." },
+                    { casa: "MONTES DE OCA", visita: "ROOTS, F. C." }
+                ]},
+                { jornada: 14, fecha: "22 FEBRERO", partidos: [
+                    { casa: "LA PEREGRINA, F. C.", visita: "ADF. CULTURAL LA UNIÓN" },
+                    { casa: "FÉNIX ACADEMY", visita: "MONTES DE OCA" },
+                    { casa: "CANALES F. C.", visita: "ROOTS, F. C." },
+                    { casa: "CARMEN F. C.", visita: "A. D. ASTURIAS" }
+                ]},
+                { jornada: "SEMIFINAL", fecha: "DOMINGO 01 MARZO", partidos: [
+                    { casa: "A: 1º LUGAR", visita: "B: 2º LUGAR" },
+                    { casa: "B: 1º LUGAR", visita: "A: 2º LUGAR" }
+                ]},
+                { jornada: "SEMINAL", fecha: "08/09 MARZO", partidos: [
+                    { casa: "A: 2º LUGAR", visita: "B: 1º LUGAR" },
+                    { casa: "B: 2º LUGAR", visita: "A: 1º LUGAR" }
+                ]},
+                { jornada: "FINAL REGIÓN 5 GOICOECHEA", fecha: "1º PARTIDO: DOMINGO 22 MARZO", partidos: [
+                    { casa: "GANADOR APERTURA", visita: "GANADOR CLAUSURA" }
+                ]},
+                { jornada: "FINAL REGIÓN 5 GOICOECHEA", fecha: "PARTIDO: DOMINGO 29 MARZO", partidos: [
+                    { casa: "GANADOR CLAUSURA", visita: "GANADOR APERTURA" }
+                ]}
+            ]
+        };
+
+        /**
+         * Genera el HTML para un torneo específico y lo inserta en el DOM.
+         * @param {string} tournamentName - El nombre del torneo ('apertura' o 'clausura').
+         */
+        function generateTournamentHTML(tournamentName) {
+            const tournamentData = tournaments[tournamentName];
+            if (!tournamentData) return '';
+
+            const gridContainer = document.createElement('div');
+            gridContainer.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6';
+
+            tournamentData.forEach(jornada => {
+                const jornadaCard = document.createElement('div');
+                jornadaCard.className = 'jornada-card flex flex-col';
+                
+                let partidosHTML = '';
+                jornada.partidos.forEach(partido => {
+                    // --- MODIFICACIÓN PARA DESTACAR ---
+                    const teamToHighlight = "CANALES F. C.";
+                    const highlightClass = 'bg-yellow-200 text-yellow-900 font-bold rounded-md px-2 py-1 inline-block';
+
+                    const casaHTML = partido.casa === teamToHighlight
+                        ? `<span class="${highlightClass}">${partido.casa}</span>`
+                        : partido.casa;
+                    
+                    const visitaHTML = partido.visita === teamToHighlight
+                        ? `<span class="${highlightClass}">${partido.visita}</span>`
+                        : partido.visita;
+                    // --- FIN DE LA MODIFICACIÓN ---
+
+                    partidosHTML += `
+                        <div class="match-row p-4 flex items-center justify-between">
+                            <span class="team-name text-gray-800 text-sm text-right flex-1">${casaHTML}</span>
+                            <span class="vs-circle mx-3 text-xs">VS</span>
+                            <span class="team-name text-gray-800 text-sm text-left flex-1">${visitaHTML}</span>
+                        </div>
+                    `;
+                });
+
+                jornadaCard.innerHTML = `
+                    <div class="jornada-header">
+                        <h3 class="font-bold text-lg">Jornada ${jornada.jornada}</h3>
+                        <p class="text-sm opacity-80">${jornada.fecha}</p>
+                    </div>
+                    <div class="flex-grow">
+                        ${partidosHTML}
+                    </div>
+                `;
+                gridContainer.appendChild(jornadaCard);
+            });
+            
+            return gridContainer;
+        }
+
+        /**
+         * Muestra el torneo seleccionado y oculta el otro.
+         * @param {string} tournamentId - El ID del torneo a mostrar ('apertura' o 'clausura').
+         */
+        function showTournament(tournamentId) {
+            const aperturaDiv = document.getElementById('apertura');
+            const clausuraDiv = document.getElementById('clausura');
+            const btnApertura = document.getElementById('btn-apertura');
+            const btnClausura = document.getElementById('btn-clausura');
+
+            if (tournamentId === 'apertura') {
+                aperturaDiv.classList.remove('hidden');
+                clausuraDiv.classList.add('hidden');
+                btnApertura.classList.add('active');
+                btnClausura.classList.remove('active');
+            } else {
+                aperturaDiv.classList.add('hidden');
+                clausuraDiv.classList.remove('hidden');
+                btnApertura.classList.remove('active');
+                btnClausura.classList.add('active');
+            }
+        }
+
+        // --- INICIALIZACIÓN ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const aperturaContainer = document.getElementById('apertura');
+            const clausuraContainer = document.getElementById('clausura');
+
+            // Generar y añadir el HTML de ambos torneos
+            aperturaContainer.appendChild(generateTournamentHTML('apertura'));
+            clausuraContainer.appendChild(generateTournamentHTML('clausura'));
+
+            // Mostrar el de apertura por defecto
+            showTournament('apertura');
+        });
+
+    </script>
+</body>
+</html>
